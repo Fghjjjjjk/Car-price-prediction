@@ -1,0 +1,111 @@
+---
+title: "Car price collection"
+author: "Ankit"
+date: "2024-07-07"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r}
+cardata = read.csv(file.choose())
+summary(cardata)
+
+
+```
+
+```{r}
+cardata <- na.omit(cardata) # to check the presence of null values in the dataset
+
+library(ggplot2)
+
+# Histogram of car prices
+hist(cardata$Price)
+hist(cardata$Prod..year)
+
+
+```
+
+```{r}
+set.seed(123)
+train_indices = sample(seq_len(nrow(cardata)), size = 0.7 * nrow(cardata))
+train_data = cardata[train_indices, ]
+test_data = cardata[-train_indices, ]
+#We split the data for training and testing the data
+
+library(randomForest)
+rf_model = randomForest(cardata$Price ~ cardata$Mileage + cardata$Prod..year + cardata$Engine.volume + cardata$Model, data = train_data)
+print(rf_model)
+
+rfprediction = rf_model$predicted
+
+library(Metrics)
+rf_mse <- mse(test_data$Price, rfprediction)
+rf_rmse <- rmse(test_data$Price, rfprediction)
+rf_mae <- mae(test_data$Price, rfprediction)
+
+cat("Random Forest - MSE:", rf_mse, "RMSE:", rf_rmse, "MAE:", rf_mae, "\n")
+#In regression,MSE, RMSE, and MAE are commonly used to evaluate the accuracy of continuous predictions.
+
+
+
+
+```
+
+```{r}
+#From the output of the random forest model:
+
+#-Number of Trees: The model used 500 trees in the random forest ensemble.
+#-Type of Model: It's a regression model (`Type of random forest: regression`), meaning it predicts continuous numeric values (in this case, predicting car prices).
+#-Number of Variables Tried at Each Split**: Only one variable was considered at each split during the tree-building process (`No. of variables tried at each split: 1`).
+
+#Now, interpreting the metrics:
+
+#- **Mean Squared Error (MSE)**: The MSE value is \(2067385505\). MSE measures the average squared difference between predicted and actual values. A lower MSE indicates better model performance in terms of prediction accuracy.
+  
+#- **Root Mean Squared Error (RMSE)**: The RMSE value is \(45468.51\). RMSE is the square root of MSE and provides an interpretable measure of the average error in the same units as the predicted variable. Lower RMSE values indicate better predictive performance.
+
+#- **Mean Absolute Error (MAE)**: The MAE value is \(15792.98\). MAE measures the average absolute difference between predicted and actual values. Like RMSE, lower MAE values indicate better model performance.
+
+### Interpretation:
+
+#1. **Model Performance**: The random forest model achieved an RMSE of approximately \(45468.51\) and an MAE of \(15792.98\). These values give you an idea of how well the model predicts car prices based on the features (`Mileage`, `Prod. year`, `Engine volume`, and `Model`).
+
+#2. **Comparison with MSE**: The MSE value of \(2067385505\) is quite large, indicating that while the model provides predictions, there is still considerable variability in the squared residuals (errors) between predicted and actual prices. However, RMSE and MAE provide more intuitive measures of the average prediction error.
+
+#3. **% Variance Explained**: The `% Var explained` value of \(-3.75\) suggests a negative variance explained, which is unusual and might indicate issues with the model or data preprocessing. Typically, variance explained should be positive and indicate how much of the variability in the target variable is explained by the model.
+
+### Conclusion:
+
+#- The random forest model appears to provide predictions with a reasonable level of accuracy, as indicated by the RMSE and MAE values. However, the large MSE and negative variance explained suggest potential areas for improvement.
+  
+#- To improve the model:
+ # - Consider optimizing hyperparameters such as the number of trees (`ntree`), maximum depth of trees (`max_depth`), and minimum node size (`min.node.size`).
+ # - Evaluate feature importance to understand which features (`Mileage`, `Prod. year`, `Engine volume`, `Model`) are most influential in predicting car prices.
+ # - Ensure data quality, including handling missing values, outliers, and ensuring consistency in feature encoding.
+
+#By refining the model based on these observations, you can potentially improve its predictive accuracy and reliability for predicting car prices.
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
